@@ -1,0 +1,16 @@
+ // Проход по синонимам
+		wordSynset.forEach(h -> {
+			Word w = graph.get(h); // Слово
+			System.out.println(w.getLemma())
+			List<HGHandle> synonyms = null;
+			
+			// Значения синонимов
+			synonyms = wnGraph.getNounSenses(h);
+	
+			// Загрузка значений слова в подсказку
+			for (HGHandle def: synonyms) {
+				SynsetLink ws = graph.get(def);
+				System.out.println(ws.getGloss())
+			}
+			
+		});

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="PersonDepartment" id="Project_1777eb1d" html="y" template="Default" database="PostgreSQL" >
+	<schema name="persondepartment" schemaname="persondepartment" >
+		<table name="departments" >
+			<column name="id" type="integer" jt="4" mandatory="y" />
+			<column name="department_name" type="varchar" length="100" jt="12" />
+			<index name="pk_department" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+		</table>
+		<table name="person_department" >
+			<column name="person_id" type="uuid" jt="1111" mandatory="y" />
+			<column name="department_id" type="uuid" jt="1111" />
+			<index name="idx_person_department" unique="NORMAL" >
+				<column name="person_id" />
+				<column name="department_id" />
+			</index>
+			<index name="idx_person_department" unique="NORMAL" >
+				<column name="person_id" />
+			</index>
+			<index name="idx_person_department_0" unique="NORMAL" >
+				<column name="department_id" />
+			</index>
+			<fk name="fk_person_department_person" to_schema="persondepartment" to_table="persons" >
+				<fk_column name="person_id" pk="id" />
+			</fk>
+			<fk name="fk_person_department" to_schema="persondepartment" to_table="departments" >
+				<fk_column name="department_id" pk="id" />
+			</fk>
+		</table>
+		<table name="persons" >
+			<column name="id" type="uuid" jt="1111" mandatory="y" />
+			<column name="person_name" type="varchar" length="100" jt="12" />
+			<index name="pk_person" unique="PRIMARY_KEY" >
+				<column name="id" />
+			</index>
+		</table>
+	</schema>
+	<layout name="Default Layout" id="Layout_2e6a4030" show_relation_columns="y" >
+		<entity schema="persondepartment" name="persons" color="c1d8ee" x="45" y="45" />
+		<entity schema="persondepartment" name="person_department" color="c1d8ee" x="225" y="45" />
+		<entity schema="persondepartment" name="departments" color="c1d8ee" x="420" y="45" />
+	</layout>
+</project>

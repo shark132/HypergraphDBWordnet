@@ -11,11 +11,12 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+	<classpathentry exported="true" kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/BolerioWNProject"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/BolerioWNProject"/>
+	<classpathentry kind="lib" path="/BolerioWNProject/jars/jwnl-1.4_rc3.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

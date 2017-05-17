@@ -1,0 +1,8 @@
+Название:Использование гиперграфовой базы HypergraphDB для работы со словарями WordNet
+
+1) Рассказать про графовые бд, NoSql 15 лет...
+2) HypegraphDB
+3) Wodnet  -графы... extJWNL
+4) связь hypergraphBD и wordnet
+время загрузки
+

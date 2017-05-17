@@ -23,6 +23,7 @@ import org.hypergraphdb.app.wordnet.WNGraph;
 import org.hypergraphdb.app.wordnet.data.*;
 import org.hypergraphdb.app.wordnet.ext.ConceptualDensity;
 import org.hypergraphdb.util.Pair;
+import static java.nio.charset.StandardCharsets.*;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -42,6 +43,8 @@ import javafx.scene.text.Text;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.KeyCode;
 
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -54,8 +57,12 @@ public class Main extends Application {
 	public static List<HGHandle> AdverbList;
 	
 	public static HyperGraph graph;
+	public static HyperGraph[] graphArray = new HyperGraph[2];
 	public static WNGraph wnGraph;
+	public static WNGraph[] wnGraphArray = new WNGraph[2];
 	public static HGHandle wordH;
+	public static HGHandle reqWord;
+	public static int wordnetNum = 0;  // Номер используемого ворднета (английский - 0, русский - 1)
 	
 	
 	@Override
@@ -74,6 +81,10 @@ public class Main extends Application {
 //        
         Button searchButton = new Button();
         searchButton.setText("Search");
+        Button enWordnetButton = new Button();
+        enWordnetButton.setText("EnWordNet");
+        Button ruWordnetButton = new Button();
+        ruWordnetButton.setText("RuWordnet");
         
         Text NounHeader = new Text("Noun:\n");
         NounHeader.setFont(new Font(14));
@@ -152,7 +163,7 @@ public class Main extends Application {
 //        
 //        
         /**
-         * Отношение Kind of. Отображает связть менее общего слова с более конкретным
+         * Отношение Kind of. Отображает связть более общего слова с более конкретным
          * Например, собака - овчарка и
         */
        
@@ -279,19 +290,41 @@ public class Main extends Application {
         
         
         
+       
+        enWordnetButton.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent event) {
+				wordnetNum = 0;
+				
+			}
+		});
+        
+        ruWordnetButton.setOnAction(new EventHandler<ActionEvent>() {
+			
+			@Override
+			public void handle(ActionEvent event) {
+				wordnetNum = 1;
+				
+			}
+		});
         
         searchButton.setOnAction(new EventHandler<ActionEvent>() {
 	        @Override
 	        public void handle(ActionEvent event) {
 //	        	wordMeaningArea.clear();
 	        	wordMeaningArea.getChildren().clear();
-	        	HGHandle wordHandle =  wnGraph.findWord(wordSearchField.getText());
-	        	
+
+	        	HGHandle wordHandle =  wnGraphArray[wordnetNum].findWord(wordSearchField.getText());
+	        	System.out.println(wordHandle);
 	        	if (wordHandle != null) {
-	        		NounList = wnGraph.getNounSenses(wordHandle);
-	        		VerbList = wnGraph.getVerbSenses(wordHandle);
-	        		AdjList = wnGraph.getAdjSenses(wordHandle);
-	        		AdverbList = wnGraph.getAdverbSenses(wordHandle);
+
+	        		NounList = wnGraphArray[wordnetNum].getNounSenses(wordHandle);
+
+	        		VerbList = wnGraphArray[wordnetNum].getVerbSenses(wordHandle);
+	        		AdjList = wnGraphArray[wordnetNum].getAdjSenses(wordHandle);
+
+//	        		AdverbList = wnGraph.getAdverbSenses(wordHandle);
 	            	
 	        		wordMeaningArea.getChildren().add(NounHeader);
 
@@ -303,10 +336,11 @@ public class Main extends Application {
 		            	for (int i = 0; i < nounListSize; i++) {
 
 		            		HGHandle sense =  NounList.get(i); // Значение слова
+		            		System.out.println(sense);
 		            		/*Синсет конкретного значения слова
 		            		 * Далее этот синсет используется для получения всех отношений
 		            		 */
-		            		SynsetLink wordSynset = graph.get(sense);
+		            		SynsetLink wordSynset = graphArray[wordnetNum].get(sense);
 		            		
 		                    // Нумерация значений
 		            		String senseLineNum = i + 1 + ". ";
@@ -393,28 +427,37 @@ public class Main extends Application {
 	        		wordMeaningArea.getChildren().add(AdjHeader);
 	        		if (!AdjList.isEmpty()) {
 		            	for (HGHandle sense: AdjList) {
-		            		wordMeaningArea.getChildren().add(new Text(graph.get(sense).toString() + "\n"));
+		            		wordMeaningArea.getChildren().add(new Text(graphArray[wordnetNum].get(sense).toString() + "\n"));
 		       			}
 	        		}
 	        		else {
 	        			wordMeaningArea.getChildren().add(new Text("Not found\n"));
 	        		}
-	        		
-	        		wordMeaningArea.getChildren().add(AdverbHeader);
-	        		if (!AdverbList.isEmpty()) {
-		            	for (HGHandle sense: AdverbList) {
-		            		wordMeaningArea.getChildren().add(new Text(graph.get(sense).toString() + "\n"));
-		       			}
-	        		}
-	        		else {
-	        			wordMeaningArea.getChildren().add(new Text("Not found\n"));
-	        		}
+//	        		
+//	        		wordMeaningArea.getChildren().add(AdverbHeader);
+//	        		if (!AdverbList.isEmpty()) {
+//		            	for (HGHandle sense: AdverbList) {
+//		            		wordMeaningArea.getChildren().add(new Text(graph.get(sense).toString() + "\n"));
+//		       			}
+//	        		}
+//	        		else {
+//	        			wordMeaningArea.getChildren().add(new Text("Not found\n"));
+//	        		}
 	        		
 	        	}
 
 	        }
         });
  
+        
+        wordSearchField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            public void handle(KeyEvent ke) {
+            	if (ke.getCode() == KeyCode.ENTER) {
+            		searchButton.fire();
+            	}
+                
+            }
+        });
         Group root = new Group();
         HBox searchHBox = new HBox();
         HBox meaningHBox = new HBox();
@@ -425,6 +468,8 @@ public class Main extends Application {
         scrollPane.setContent(wordMeaningArea);
         searchHBox.getChildren().add(wordSearchField);
         searchHBox.getChildren().add(searchButton);
+        searchHBox.getChildren().add(enWordnetButton);
+        searchHBox.getChildren().add(ruWordnetButton);
         meaningHBox.getChildren().add(scrollPane);
         
         vbox.getChildren().add(searchHBox);
@@ -438,19 +483,37 @@ public class Main extends Application {
 	
 	public static void main(String[] args) {
 		
-		if (args.length != 2)
-		{
-			System.out.println("Usage: HGWordnetLoader dictionaryLocation hypergraphDBLocation");
-			System.exit(0);
-		}
-
+//		loadWordnet(args);
 		try
 		{
 			// Загрузка гипеграфа
-			graph = HGEnvironment.get(args[1]);
+//			graphArray[0] = HGEnvironment.get(args[1]);  // EnWordnet
+//			graphArray[1] = HGEnvironment.get(args[2]); // RuWordnet
+			
+			graphArray[0] = new HyperGraph(args[1]);
+//			graphArray[1] = new HyperGraph(args[2]);
+
+//			graphArray[0].add(new SynsetLink())
+			
 			// Получение wordnetGraph
-			wnGraph = new WNGraph(graph);
+			wnGraphArray[0] = new WNGraph(graphArray[0]);
+//			wnGraphArray[1] = new WNGraph(graphArray[1]);
 				
+//		
+			HGHandle perfect = wnGraphArray[0].findWord("perfect");
+			HGHandle little = wnGraphArray[0].findWord("little");
+			List<HGHandle> perfList = wnGraphArray[0].getNounSenses(perfect);
+			List<HGHandle> littleList = wnGraphArray[0].getNounSenses(little);
+			HGHandle perfSense = perfList.get(0); 
+			HGHandle littleSense = littleList.get(0); 
+			
+			HGHandle[] targ = new HGHandle[2];
+			targ[0] = perfSense;
+			targ[1] = littleSense;
+//			
+			graphArray[0].add(new SynsetLink(targ));
+			wnGraphArray[0] = new WNGraph(graphArray[0]);
+			
 			launch(args);
 			
 		}
@@ -458,6 +521,36 @@ public class Main extends Application {
 		{
 			t.printStackTrace();
 		}
+		
+		
+		
+	}
+	
+	public static void loadWordnet(String args[]) {
+		HGWordNetLoader loader = new HGWordNetLoader();
+	loader.setDictionaryLocation(args[0]);
+	try
+	{
+	    HGConfiguration config = new HGConfiguration();
+//	    BDBConfig bdbConfig = (BDBConfig)config.getStoreImplementation().getConfiguration();
+	    // Change the storage cache from the 20MB default to 500MB
+//	    bdbConfig.getEnvironmentConfig().setCacheSize(1000*1024*1024);
+	    config.setTransactional(false);
+		HyperGraph graph = HGEnvironment.get(args[1]);
+		System.out.println("Loading WordNet to " + args[1] + " from dictionary " + args[0]);
+		System.out.println("Atom count before : " + hg.count(graph, hg.all()));
+		long startTime = System.currentTimeMillis();			
+		loader.loadWordNet(graph);
+		long endTime = System.currentTimeMillis();
+		System.out.println("WordNet sucessfully loaded - " + (endTime - startTime)/1000/60 + " minutes.");
+		System.out.println("Atom count after : " + hg.count(graph, hg.all()));
+	}
+	catch (Throwable t)
+	{
+		t.printStackTrace();
+	}
+
+	
 	}
 	
 	public String firstUpperCase(String word){
@@ -500,25 +593,25 @@ public class Main extends Application {
 		
 		List<Hyperlink> links = new ArrayList<Hyperlink>(); 
 		
-
 	    // Проход по синонимам
 		synset.forEach(h -> {
-			Word w = graph.get(h); // Слово
+			Word w = graphArray[wordnetNum].get(h); // Слово
+			
 			List<HGHandle> syns = null;
 			
 			// Значения синонимов для всплывающего окна подсказки
 			if (type == "Noun"){
-				syns = wnGraph.getNounSenses(h);
+				syns = wnGraphArray[wordnetNum].getNounSenses(h);
 			}
 			else {
-				syns = wnGraph.getNounSenses(h);
+				syns = wnGraphArray[wordnetNum].getNounSenses(h);
 			}
 			
 			String hyperlinkTip = "";
 			
 			// Загрузка значений слова в подсказку
 			for (HGHandle def: syns) {
-				SynsetLink ws = graph.get(def);
+				SynsetLink ws = graphArray[wordnetNum].get(def);
 				hyperlinkTip +=  firstUpperCase(ws.getGloss()) + "\n";
 			}
 			// Создание гиперссылки синонима
@@ -563,8 +656,8 @@ public class Main extends Application {
 		    	// Очистка текстового поля под другими видами отношений (не работает!!!)
 		    	relarionsTextFlow.getChildren().removeAll(new Hyperlink());
 		    	
-		    	List<KindOf> hyponymsList = graph.getAll(hg.and(hg.type(KindOf.class),
-    	        		hg.incident(graph.getHandle(nounSynset))));
+		    	List<KindOf> hyponymsList = graphArray[wordnetNum].getAll(hg.and(hg.type(KindOf.class),
+    	        		hg.incident(graphArray[wordnetNum].getHandle(nounSynset))));
     	        
     	        // Получение списка гипонимов
     	        int hyponymListSize = hyponymsList.size();
@@ -572,10 +665,10 @@ public class Main extends Application {
     	        	KindOf hyponym = hyponymsList.get(p);
     	        	for (int z = 0; z < hyponym.getArity(); z++) {
     	        		HGHandle handle = hyponym.getTargetAt(z);
-    	        		SynsetLink sen = graph.get(handle);
+    	        		SynsetLink sen = graphArray[wordnetNum].get(handle);
     	        		if (!sen.equals(nounSynset)) {
     	        			sen.forEach(c -> {
-    	            			Word tempWord = graph.get(c);
+    	            			Word tempWord = graphArray[wordnetNum].get(c);
         	            		Hyperlink hlink = new Hyperlink();
     			            	hlink.setText(tempWord.getLemma() + " ");
     			            	hlink.setOnAction(new EventHandler<ActionEvent>() {
@@ -617,8 +710,8 @@ public class Main extends Application {
 		    	int relationTextFlowSize = relarionsTextFlow.getChildren().size() - 1 ;
 		    	relarionsTextFlow.getChildren().removeAll(new Hyperlink());
 		    	
-		    	List<PartOf> meronymyList = graph.getAll(hg.and(hg.type(PartOf.class),
-    	        		hg.incident(graph.getHandle(nounSynset))));
+		    	List<PartOf> meronymyList = graphArray[wordnetNum].getAll(hg.and(hg.type(PartOf.class),
+    	        		hg.incident(graphArray[wordnetNum].getHandle(nounSynset))));
     	        
     	        // Получение списка меронимов и вывод их на экран
     	        int meronymyListSize = meronymyList.size();
@@ -626,10 +719,10 @@ public class Main extends Application {
     	        	PartOf meronym = meronymyList.get(p);
     	        	for (int z = 0; z < meronym.getArity(); z++) {
     	        		HGHandle handle = meronym.getTargetAt(z);
-    	        		SynsetLink sen = graph.get(handle);
+    	        		SynsetLink sen = graphArray[wordnetNum].get(handle);
     	        		if (!sen.equals(nounSynset)) {
     	        			sen.forEach(c -> {
-    	            			Word tempWord = graph.get(c);
+    	            			Word tempWord = graphArray[wordnetNum].get(c);
         	            		Hyperlink hlink = new Hyperlink();
     			            	hlink.setText(tempWord.getLemma() + " ");
     			            	hlink.setOnAction(new EventHandler<ActionEvent>() {
